@@ -1,6 +1,9 @@
 import os 
 import pytesseract
 import cv2
+import pymupdf4llm
+import pdf2image
+from constants import MINIMUM_INPUT_THRESHOLD
 from typing import Tuple
 from utils import fancy_print
 
@@ -11,11 +14,11 @@ class Preprocessor:
     for the resume evaluator. Detects input type, validates it, and extracts text accordingly.
     """
 
-    def __init__(self, minimum_character_count: int = 300) -> None:
+    def __init__(self, minimum_input_threshold: int) -> None:
         """
         Initialises constants to be used in preprocessing.
         """
-        self.minimum_character_count = minimum_character_count
+        self.minimum_input_threshold = minimum_input_threshold
         self.file_extensions = {
             'Image': ('.jpg', '.jpeg', '.png', '.webp'),
             'Docx': ('.docx',),
@@ -81,7 +84,7 @@ class Preprocessor:
             return True, "File"
 
         # TEXT
-        if len(input_str.strip()) >= self.minimum_character_count:
+        if len(input_str.strip()) >= self.minimum_input_threshold:
             return True, "Text"
         
         # EITHER INCORRECT FILEPATH OR TOO SHORT OF A RESUME DESCRIPTION
@@ -89,8 +92,31 @@ class Preprocessor:
     
     def pdf_to_text(self, pdf_path: str) -> str:
         """
+        Uses pytesseract (non-editable) or pymupdf4llm (editable) to extract text 
+        from the given PDF.
         """
-        pass
+        text = pymupdf4llm.to_markdown(doc=pdf_path)
+
+        # IF ENOUGH EDITABLE TEXT
+        if len(text) > self.minimum_input_threshold:
+            return text
+        
+        print("Not enough editable text detected. Performing OCR...")
+        pages = pdf2image.convert_from_path(pdf_path=pdf_path)
+        ocr_text = ""
+
+        # PERFORMING OCR FOR EACH PAGE
+        for page_no, page in enumerate(pages):
+            print(f"Processing page {page_no + 1} out of {len(pages)}...")
+            current_page_text = pytesseract.image_to_string(page)
+            ocr_text += current_page_text
+
+        # IF ENOUGH OCR TEXT
+        if len(ocr_text) > self.minimum_input_threshold:
+            return ocr_text
+        
+        # IF DOCUMENT CONTAINS INSUFFICIENT TEXT
+        raise ValueError(f"Insufficient text found! Only {len(ocr_text)} characters of text were detected in the document.")
 
     def image_to_text(self, image_path: str) -> str:
         """
@@ -118,5 +144,7 @@ if __name__ == '__main__':
     # USE BELOW CODE FOR TESTING #
     ##############################
     input = """"""
-    preprocessor = Preprocessor()
+    preprocessor = Preprocessor(
+        minimum_input_threshold=MINIMUM_INPUT_THRESHOLD,
+    )
     print(preprocessor(input_str=input))
