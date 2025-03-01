@@ -3,9 +3,10 @@ import pytesseract
 import cv2
 import pymupdf4llm
 import pdf2image
-from constants import MINIMUM_INPUT_THRESHOLD
+from docx import Document
 from typing import Tuple
 from utils import fancy_print
+from constants import MINIMUM_INPUT_THRESHOLD
 
 
 class Preprocessor:
@@ -50,14 +51,20 @@ class Preprocessor:
             raise TypeError(f"Unsupported file format: {self.file_type}!")
 
         print(f"Detected file type: {self.file_type}")
+
         if self.file_type == 'PDF':
-            return self.pdf_to_text(pdf_path=self.input)
+            text = self.pdf_to_text(pdf_path=self.input)
         
         if self.file_type == 'Image':
-            return self.image_to_text(image_path=self.input)
+            text = self.image_to_text(image_path=self.input)
         
         if self.file_type == 'Docx':
-            return self.docx_to_text(wordx_path=self.input)
+            text = self.docx_to_text(docx_path=self.input)
+        
+        if len(text) < self.minimum_input_threshold:
+            raise ValueError(f"Insufficient text found! Only {len(text)} characters of text were detected in the {self.file_type} file!")
+        
+        return text
 
     def validate_file_type(self, file_path: str) -> Tuple[bool, str]:
         """
@@ -111,13 +118,8 @@ class Preprocessor:
             current_page_text = pytesseract.image_to_string(page)
             ocr_text += current_page_text
 
-        # IF ENOUGH OCR TEXT
-        if len(ocr_text) > self.minimum_input_threshold:
-            return ocr_text
+        return ocr_text
         
-        # IF DOCUMENT CONTAINS INSUFFICIENT TEXT
-        raise ValueError(f"Insufficient text found! Only {len(ocr_text)} characters of text were detected in the document.")
-
     def image_to_text(self, image_path: str) -> str:
         """
         Uses pytesseract to detect and return the text that is present in the given image.
@@ -130,13 +132,15 @@ class Preprocessor:
         
         print("Performing OCR using PyTesseract...")
         text = pytesseract.image_to_string(processed_image)
-        # print("Extracted Text:\n", text)
         return text
         
-    def docx_to_text(self, wordx_path: str) -> str:
+    def docx_to_text(self, docx_path: str) -> str:
         """
+        Uses python-docx library to extract text from a .docx file.
         """
-        pass
+        doc = Document(docx_path)
+        text = "\n".join([para.text for para in doc.paragraphs])
+        return text
 
 
 if __name__ == '__main__':
@@ -144,7 +148,12 @@ if __name__ == '__main__':
     # USE BELOW CODE FOR TESTING #
     ##############################
     input = """"""
-    preprocessor = Preprocessor(
-        minimum_input_threshold=MINIMUM_INPUT_THRESHOLD,
-    )
-    print(preprocessor(input_str=input))
+    try:
+        preprocessor = Preprocessor(
+            minimum_input_threshold=MINIMUM_INPUT_THRESHOLD,
+        )
+        print(preprocessor(input_str=input))
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        # import traceback
+        # traceback.print_exc()
