@@ -6,7 +6,6 @@ import pdf2image
 from docx import Document
 from typing import Tuple
 from utils import fancy_print
-from constants import MINIMUM_INPUT_THRESHOLD
 
 
 class Preprocessor:
@@ -15,7 +14,7 @@ class Preprocessor:
     for the resume evaluator. Detects input type, validates it, and extracts text accordingly.
     """
 
-    def __init__(self, minimum_input_threshold: int) -> None:
+    def __init__(self, minimum_input_threshold: int = 400) -> None:
         """
         Initialises constants to be used in preprocessing.
         """
@@ -149,9 +148,7 @@ if __name__ == '__main__':
     ##############################
     input = """"""
     try:
-        preprocessor = Preprocessor(
-            minimum_input_threshold=MINIMUM_INPUT_THRESHOLD,
-        )
+        preprocessor = Preprocessor()
         print(preprocessor(input_str=input))
     except Exception as e:
         print(f"Error: {str(e)}")
