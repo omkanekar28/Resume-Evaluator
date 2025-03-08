@@ -5,7 +5,6 @@ import pymupdf4llm
 import pdf2image
 from docx import Document
 from typing import Tuple
-from utils import fancy_print
 
 
 class Preprocessor:
@@ -30,7 +29,7 @@ class Preprocessor:
         Validates and initialises the input and its type (File/Text). 
         Uses the input-type relevant function to return the text present inside.
         """
-        fancy_print("Performing input preprocessing...")
+        print("Performing input preprocessing...")
         is_valid, input_type = self.validate_input(input_str=input_str)
 
         # VALIDATING THE INPUT
