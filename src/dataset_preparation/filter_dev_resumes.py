@@ -2,13 +2,14 @@ import os
 import pymupdf4llm
 import pandas as pd
 from sentence_transformers import SentenceTransformer, util
+from utils import fancy_print
 
 
 class ResumeClassifier:
     """
     """
 
-    def __init__(self, embedding_model: str = "all-MiniLM-L6-v2") -> None:
+    def __init__(self, embedding_model: str = "all-mpnet-base-v2") -> None:
         """
         """
         print(f"Initialising {embedding_model} model...")
@@ -53,6 +54,7 @@ class ResumeClassifier:
 
 
 if __name__ == '__main__':
+    fancy_print("Filter Resumes")
     resume_dir = "/home/om/code/Resume-Evaluator/data/ResumesPDF"
     resume_classifier = ResumeClassifier()
     resume_classifier.filter_resumes(resume_dir=resume_dir)
