@@ -3,7 +3,9 @@ from llama_cpp import Llama
 
 
 class GGUFModel:
-    """Class to handle the GGUF model."""
+    """
+    Class to handle the GGUF model.
+    """
 
     def __init__(self, gguf_model_path: str, system_prompt: str, context_window_size: int, 
                  verbose: bool = False) -> None:
@@ -26,13 +28,13 @@ class GGUFModel:
         except Exception as e:
             raise RuntimeError(f"An unexpected error occured while trying to load the GGUF model: {str(e)}")
     
-    def perform_inference(self, instruction_prompt: str, input: str) -> str:
+    def perform_inference(self, instruction_prompt: str) -> str:
         """
-        Performs inference on the given instruction prompt, input pair and returns the model output.
+        Performs inference on the given instruction prompt and returns the model output.
         """
         try:
             messages = [
-                {"role": "user", "content": f"{instruction_prompt}\n\n{input}"}
+                {"role": "user", "content": f"{instruction_prompt}"}
             ]
             if self.system_prompt is not None:
                 messages.insert(0, {"role": "system", "content": self.system_prompt})
