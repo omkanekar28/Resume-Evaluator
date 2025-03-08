@@ -1,4 +1,5 @@
 import os
+import random
 import pymupdf4llm
 import pandas as pd
 from sentence_transformers import SentenceTransformer, util
@@ -7,10 +8,12 @@ from utils import fancy_print
 
 class ResumeClassifier:
     """
+    Class to handle all operations related to the filtering of resumes.
     """
 
-    def __init__(self, embedding_model: str = "all-mpnet-base-v2") -> None:
+    def __init__(self, resume_dir: str, output_dir: str, embedding_model: str = "all-mpnet-base-v2") -> None:
         """
+        Initialises the sentence transformer model and other constants needed for filtering.
         """
         print(f"Initialising {embedding_model} model...")
         self.embedding_model = SentenceTransformer(embedding_model)
@@ -31,30 +34,63 @@ class ResumeClassifier:
         }
         print(f"Computing embeddings for pre-defined categories...")
         self.category_embeddings = {key: self.embedding_model.encode(value, convert_to_tensor=True) for key, value in self.categories.items()}
+        self.output_dict = {
+            "Filename": [],
+            "Text": []
+        }
+        self.resume_dir = resume_dir
+        self.output_dir = output_dir
 
-    def filter_resumes(self, resume_dir: str) -> pd.DataFrame:
+    def save_current_output(self) -> None:
         """
+        Saves current version of the output dataframe as excel file.
         """
-        for index, file in enumerate(os.listdir(resume_dir)):
-            print(f"\n\nProcessing file {index + 1} out of {len(os.listdir(resume_dir))}\n\n")
-            filepath = os.path.join(resume_dir, file)
+        output_df = pd.DataFrame(self.output_dict)
+        output_df.to_excel(self.output_dir, index=False)
 
-            # GETTING THE RESUME TEXT
-            text = pymupdf4llm.to_markdown(doc=filepath)
-            print(text)
+    def filter_resumes(self, similarity_threshold: float = 0.5) -> pd.DataFrame:
+        """
+        Iterates through the unfiltered resumes and only saves those ones which are related to 
+        software development roles.
+        """
+        files = os.listdir(self.resume_dir)
+        random.shuffle(files)
+        for index, file in enumerate(files):
+            try:
+                print(f"\n\nProcessing file {index + 1} out of {len(os.listdir(self.resume_dir))}\n\n")
+                filepath = os.path.join(self.resume_dir, file)
 
-            # COMPARING WITH PRE-DEFINED CATEGORIES
-            for category, description_embedding in self.category_embeddings.items():
-                resume_text_embedding = self.embedding_model.encode(text, convert_to_tensor=True)
-                category_score = util.cos_sim(resume_text_embedding, description_embedding).item()
-                print(f"{category}: {category_score}")
+                # GETTING THE RESUME TEXT
+                text = pymupdf4llm.to_markdown(doc=filepath)
+                print(text)
+                highest_category_score = 0
 
-        # TODO: Write logic to take resumes with respectable score in atleast one of the categories 
-        #       (Would be better to take some irrelevant ones too for generalisation of data).
+                # COMPARING WITH PRE-DEFINED CATEGORIES
+                for category, description_embedding in self.category_embeddings.items():
+                    resume_text_embedding = self.embedding_model.encode(text, convert_to_tensor=True)
+                    category_score = util.cos_sim(resume_text_embedding, description_embedding).item()
+                    print(f"{category}: {category_score}")
+                    if category_score > highest_category_score:
+                        highest_category_score = category_score
+
+                # TODO: Write logic to take resumes with respectable score in atleast one of the categories 
+                #       (Would be better to take some irrelevant ones too for generalisation of data).
+                if highest_category_score >= similarity_threshold:
+                    self.output_dict['Filename'].append(file)
+                    self.output_dict['Text'].append(text)
+                
+                self.save_current_output()
+            except Exception as e:
+                print(f"Skipping file {index + 1} due to the following error: {str(e)}")
+                continue
 
 
 if __name__ == '__main__':
-    fancy_print("Filter Resumes")
+    fancy_print("Starting Resume Filtering")
     resume_dir = "/home/om/code/Resume-Evaluator/data/ResumesPDF"
-    resume_classifier = ResumeClassifier()
-    resume_classifier.filter_resumes(resume_dir=resume_dir)
+    output_dir = "dev_resumes.xlsx"
+    resume_classifier = ResumeClassifier(
+        resume_dir=resume_dir,
+        output_dir=output_dir
+    )
+    resume_classifier.filter_resumes()
