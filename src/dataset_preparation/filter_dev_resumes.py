@@ -59,6 +59,11 @@ class ResumeClassifier:
             try:
                 print(f"\n\nProcessing file {index + 1} out of {len(os.listdir(self.resume_dir))}\n\n")
                 filepath = os.path.join(self.resume_dir, file)
+                filesize = os.path.getsize(filepath)
+
+                # SKIP LARGE FILES
+                if filesize > 500000:
+                    raise OverflowError("File size exceeding the threshold!")
 
                 # GETTING THE RESUME TEXT
                 text = pymupdf4llm.to_markdown(doc=filepath)
@@ -88,7 +93,7 @@ class ResumeClassifier:
 if __name__ == '__main__':
     fancy_print("Starting Resume Filtering")
     resume_dir = "/home/om/code/Resume-Evaluator/data/ResumesPDF"
-    output_dir = "dev_resumes.xlsx"
+    output_dir = "pdf_dataset.xlsx"
     resume_classifier = ResumeClassifier(
         resume_dir=resume_dir,
         output_dir=output_dir
