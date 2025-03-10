@@ -1,0 +1,14 @@
+**JD gathering Strategy**
+
+1) 5 from linkedin (India)
+	- 1 Intern level
+	- 1 Entry level
+	- 2 Associate level
+	- 1 Senior level
+
+2) 10 from wellfound (Abroad)
+
+3) 5 from glassdoor (India)
+	- 1 Intern level
+	- 1 Entry level
+	- 3 Mid senior level
