@@ -1,0 +1,13 @@
+I. Resumes:-
+    1) Text Dataset:-
+        - https://www.kaggle.com/datasets/gauravduttakiit/resume-dataset
+
+    2) PDF, Docx, Images Dataset:-
+        - https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset
+        - https://www.kaggle.com/datasets/extremelysunnyyk/resume-data-with-annotations
+        - https://resume.io/resume-examples#engineering-category-4
+
+II. Job Descriptions:-
+    - Linkedin:- https://www.linkedin.com/
+    - Wellsfound:- https://wellfound.com/
+    - Glassdoor:- https://www.glassdoor.co.in/
