@@ -12,3 +12,22 @@
 	- 1 Intern level
 	- 1 Entry level
 	- 3 Mid senior level
+
+
+Data Science: 
+Working with data, building machine learning models, deep learning, artificial intelligence, data visualization, statistics, and data analysis.,
+
+Web Designing: 
+Creating website layouts, UI/UX design, working with HTML, CSS, JavaScript, Figma, Adobe XD, and responsive design principles.,
+
+Java Developer: 
+Developing applications using Java, Spring Boot, Hibernate, Microservices, backend development, and software engineering principles.,
+
+DevOps Engineer: 
+Handling CI/CD pipelines, Docker, Kubernetes, cloud infrastructure (AWS, Azure, GCP), automation, and system reliability.,
+
+Database: 
+Working with SQL, MySQL, PostgreSQL, MongoDB, database administration, query optimization, and data modeling.,
+
+Testing: 
+Manual and automated testing, writing test cases, using tools like JIRA, Selenium, TestNG, performance testing, and software quality assurance.
