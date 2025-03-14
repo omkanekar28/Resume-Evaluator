@@ -8,7 +8,7 @@ class GGUFModel:
     """
 
     def __init__(self, gguf_model_path: str, system_prompt: str, context_window_size: int, 
-                 verbose: bool = False) -> None:
+                 verbose: bool = False, n_batch: int = 4) -> None:
         """
         Initializes the model and its relevant parameters.
         """
@@ -18,6 +18,7 @@ class GGUFModel:
             self.model = Llama(
                 model_path=gguf_model_path,
                 n_gpu_layers= -1 if self.device=='cuda' else 0,
+                n_batch=n_batch,
                 n_ctx=context_window_size,
                 verbose=verbose
             )
