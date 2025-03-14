@@ -1,3 +1,4 @@
+import re
 import os 
 import pytesseract
 import cv2
@@ -62,6 +63,7 @@ class Preprocessor:
         if len(text) < self.minimum_input_threshold:
             raise ValueError(f"Insufficient text found! Only {len(text)} characters of text were detected in the {self.file_type} file!")
         
+        text = self.remove_illegal_chars(value=text)
         return text
 
     def validate_file_type(self, file_path: str) -> Tuple[bool, str]:
@@ -139,7 +141,14 @@ class Preprocessor:
         doc = Document(docx_path)
         text = "\n".join([para.text for para in doc.paragraphs])
         return text
-
+    
+    def remove_illegal_chars(self, value: str) -> str:
+        """
+        Removes illegal characters from the string while preserving newlines.
+        """
+        if isinstance(value, str):
+            return re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', value)  # Excludes \n (\x0A) and \r (\x0D)
+        return value
 
 if __name__ == '__main__':
     ##############################
