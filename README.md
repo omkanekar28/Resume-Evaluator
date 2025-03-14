@@ -1,2 +1,19 @@
-# Resume-Evaluator
-This project is an AI-powered Resume Evaluator that compares a candidate's resume against a job description to assess their fit. It uses advanced LLM-based dataset preparation and Unsloth fine-tuning techniques to deliver insightful, structured feedback for job seekers and recruiters.
+# Resume Evaluator (Project on Hold)
+
+🚨 **Status: On Hold** 🚨  
+This project is currently **on hold** due to the high cost of labeling 20,000+ samples and extensive GPU requirements for training. However, the dataset and training pipeline are available for further use and contribution.
+
+## 📌 Project Overview
+This is an AI-powered **Resume Evaluator** that aims to analyze resumes and match them with job descriptions. The goal was to fine-tune an LLM-based model to classify resumes based on job relevance.
+
+## 📂 Dataset
+- **Source:**
+  - **Job Descriptions:** Scraped from **LinkedIn, Wellfound, and Glassdoor**
+  - **Resumes:** Extracted from Kaggle datasets
+- **Size:** ~20,000 rows (unlabeled)
+- **Challenges:** Requires manual/LLM-assisted labeling, which is resource-intensive
+
+## 🏗️ Project Components
+- **Data Collection & Preprocessing**: Extracting resumes and job descriptions, cleaning text
+- **Embedding Generation**: Using sentence-transformers for cosine similarity comparison
+- **Training Pipeline**: Script for fine-tuning a model (currently incomplete due to compute constraints)
