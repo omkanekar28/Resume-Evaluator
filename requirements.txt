@@ -3,6 +3,9 @@ pdf2image==1.17.0
 pytesseract==0.3.13
 python-docx==1.1.2
 pandas==2.2.3
+pyfiglet==1.0.2
 
 # COMMANDS TO RUN IN CLI
 # sudo apt-get install poppler-utils
+
+# TRAINING RELATED LIBRARIES NOT ADDED
