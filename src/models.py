@@ -8,21 +8,20 @@ class GGUFModel:
     """
 
     def __init__(self, gguf_model_path: str, system_prompt: str, context_window_size: int, 
-                 verbose: bool = False, n_batch: int = 4) -> None:
+                 verbose: bool = False, n_batch: int = 4, device = 'cuda' if torch.cuda.is_available() else 'cpu') -> None:
         """
         Initializes the model and its relevant parameters.
         """
         try:
-            self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
             self.system_prompt = system_prompt
             self.model = Llama(
                 model_path=gguf_model_path,
-                n_gpu_layers= -1 if self.device=='cuda' else 0,
+                n_gpu_layers= -1 if device=='cuda' else 0,
                 n_batch=n_batch,
                 n_ctx=context_window_size,
                 verbose=verbose
             )
-            if self.device == 'cuda':
+            if device == 'cuda':
                 print(f"Model located at {gguf_model_path} loaded successfully on GPU.")
             else:
                 print(f"Model located at {gguf_model_path} loaded successfully on CPU.")

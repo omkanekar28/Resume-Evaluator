@@ -79,9 +79,9 @@ class DatasetCompleterAutomatic:
 
 if __name__ == '__main__':
     dataset_completer = DatasetCompleterAutomatic(
-        dataset_path="/home/om/code/Resume-Evaluator/data/dataset_without_labels.xlsx",
+        dataset_path="/home/omkanekar28/code/Resume-Evaluator/data/dataset_without_labels.xlsx",
         output_path="dataset.xlsx",
-        gguf_model_path="",
+        gguf_model_path="/home/omkanekar28/code/Resume-Evaluator/models/qwen2.5-7b-instruct-q5_k_m-00001-of-00002.gguf",
         system_prompt=get_label_generation_system_prompt(),
         context_window_size=8000
     )
