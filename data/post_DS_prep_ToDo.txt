@@ -1,0 +1,4 @@
+1. Remove duplicates (if any).
+2. Check resume_fit value proportionality (strong, moderate, weak) (should be generalised).
+3. Sometimes, resume_fit is a paragraph not just 1-2 words, fix that.
+4. Check if overall dataset is generalised (not biased towards specific pattern).

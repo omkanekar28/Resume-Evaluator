@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import numpy as np
 import pandas as pd
 from models import GGUFModel
 from prompts import get_label_generation_system_prompt, get_label_generation_instruction_prompt
@@ -12,7 +13,7 @@ class DatasetCompleterAutomatic:
     on the incomplete dataset.
     """
 
-    def __init__(self, dataset_path: str, output_path: str, gguf_model_path: str, system_prompt: str, context_window_size) -> None:
+    def __init__(self, dataset_path: str, dataset_shuffle_seed: int, output_path: str, gguf_model_path: str, system_prompt: str, context_window_size) -> None:
         """
         Initialises the parameters needed for dataset completion.
         """
@@ -22,7 +23,18 @@ class DatasetCompleterAutomatic:
             context_window_size=context_window_size
         )
         self.dataset = pd.read_excel(dataset_path)
-        
+        self.shuffle_seed = dataset_shuffle_seed
+
+        if self.shuffle_seed is not None:
+            print(f"Shuffling dataset with seed: {self.shuffle_seed}")
+            # Set random seed for reproducibility
+            np.random.seed(self.shuffle_seed)
+            # Shuffle the dataset
+            self.dataset = self.dataset.sample(frac=1, random_state=self.shuffle_seed).reset_index(drop=True)
+            print(f"Dataset shuffled. Total rows: {len(self.dataset)}")
+        else:
+            print("No shuffle seed provided. Processing dataset in original order.")
+
         self.output_store_path = output_path
 
         if os.path.exists(self.output_store_path):
@@ -60,9 +72,10 @@ class DatasetCompleterAutomatic:
                 print(f"Inference time taken: {(time.time() - inference_start_time):.2f} seconds")
                 print(response)
                 try:
-                    parsed_response = json.loads(response)
+                    response_json_str = response[response.index('{'):]  # Extract JSON part from the response
+                    parsed_response = json.loads(response_json_str)
                     
-                    required_keys = ["match_score", "summary", "skill_match", "experience_match"]
+                    required_keys = {"summary", "match_score", "skill_match", "experience_match", "education_match", "responsibility_match", "final_assessment"}
                     if not all(key in parsed_response for key in required_keys):
                         raise ValueError(f"Response JSON missing required fields! Response: {parsed_response}")
                 except json.JSONDecodeError:
@@ -73,15 +86,19 @@ class DatasetCompleterAutomatic:
                 self.output_dict['Response'].append(response)
                 self.save_current_output_dict()
             except Exception as e:
-                print(f"Skipping row {index+1}: {str(e)}")
+                print(f"Skipping row {index + 1}: {str(e)}")
                 continue
 
 
 if __name__ == '__main__':
+    print("********************************************************************************************")
+    print("*                                    DATASET GENERATION                                    *")
+    print("********************************************************************************************")
     dataset_completer = DatasetCompleterAutomatic(
-        dataset_path="/home/omkanekar28/code/Resume-Evaluator/data/dataset_without_labels.xlsx",
-        output_path="dataset.xlsx",
-        gguf_model_path="/home/omkanekar28/code/Resume-Evaluator/models/qwen2.5-7b-instruct-q5_k_m-00001-of-00002.gguf",
+        dataset_path="/home/omkanekar28/code/Resume-Evaluator/data/dataset_without_labels(Data Scientist).xlsx",
+        dataset_shuffle_seed=None,  # Set to None for no shuffling
+        output_path="/home/omkanekar28/code/Resume-Evaluator/data/dataset_complete(Data Scientist).xlsx",
+        gguf_model_path="/home/omkanekar28/code/Resume-Evaluator/models/Qwen3-4B-Q4_K_M.gguf",
         system_prompt=get_label_generation_system_prompt(),
         context_window_size=8000
     )
