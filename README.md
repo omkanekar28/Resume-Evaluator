@@ -1,7 +1,7 @@
 # Resume Evaluator (Project on Hold)
 
 🚨 **Status: On Hold** 🚨  
-This project is currently **on hold** due to the high cost of labeling 20,000+ samples and extensive GPU requirements for training. However, the dataset and training pipeline are available for further use and contribution.
+This project is currently on hold because labeling 20,000+ samples is extremely time-consuming. However, the dataset and training pipeline are available for further use and contribution.
 
 ## 📌 Project Overview
 This is an AI-powered **Resume Evaluator** that aims to analyze resumes and match them with job descriptions. The goal was to fine-tune an LLM-based model to classify resumes based on job relevance.
