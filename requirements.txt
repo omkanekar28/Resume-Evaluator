@@ -5,8 +5,8 @@ python-docx>=1.1.2
 pandas>=2.2.3
 pyfiglet>=1.0.2
 openpyxl>=3.1.5
-torch>=2.7.0
-llama-cpp-python>=0.3.23
+# torch>=2.7.0
+# llama-cpp-python>=0.3.23
 google-genai>=2.6.0
 
 # COMMANDS TO RUN IN CLI

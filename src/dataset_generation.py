@@ -4,7 +4,7 @@ import json
 import numpy as np
 import pandas as pd
 from models import (
-    GGUFModel, 
+    # GGUFModel, 
     GoogleGenaiModel, 
     OpenrouterModel
 )
@@ -30,10 +30,11 @@ class DatasetCompleterAutomatic:
         """
         Initialises the parameters needed for dataset completion.
         """
-        self.model_handler = OpenrouterModel(
+        self.model_handler = GoogleGenaiModel(
             model_name=model_ckpt,
             system_prompt=system_prompt,
             api_key=kwargs.get('api_key', None), 
+            include_thoughts=kwargs.get('include_thoughts', True)
         )
         self.dataset = pd.read_excel(dataset_path)
         self.shuffle_seed = dataset_shuffle_seed
