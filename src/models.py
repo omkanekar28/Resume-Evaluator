@@ -1,5 +1,9 @@
+import os
 import torch
+from typing import Optional
 from llama_cpp import Llama
+from google import genai
+from google.genai import types
 
 
 class GGUFModel:
@@ -45,3 +49,66 @@ class GGUFModel:
             return text
         except Exception as e:
             raise RuntimeError(f"An unexpected error occured while trying to perform inference: {str(e)}")
+
+
+class GoogleGenaiModel:
+    """
+    Class to handle Google Generative AI models (Gemini) via the google-genai SDK.
+    """
+
+    def __init__(
+        self,
+        model_name: str,
+        system_prompt: str, 
+        api_key: Optional[str] = None,
+        include_thoughts: Optional[bool] = False,
+    ) -> None:
+        """
+        Initializes the Google Generative AI model and its relevant parameters.
+        """
+        try:
+            self.model_name = model_name
+            self.system_prompt = system_prompt
+
+            resolved_key = api_key or os.environ.get("GOOGLE_API_KEY")
+            if not resolved_key:
+                raise ValueError(
+                    "No API key provided. Pass api_key= or set the GOOGLE_API_KEY environment variable."
+                )
+
+            self.client = genai.Client(api_key=resolved_key)
+
+            # Build reusable GenerateContentConfig
+            self._config = types.GenerateContentConfig(
+                system_instruction=self.system_prompt if self.system_prompt else None, 
+                thinking_config=types.ThinkingConfig(include_thoughts=include_thoughts) if include_thoughts else None
+            )
+            print(f"Google GenAI model '{self.model_name}' initialised successfully.")
+
+        except Exception as e:
+            raise RuntimeError(
+                f"An unexpected error occurred while trying to initialise the Google GenAI model: {str(e)}"
+            )
+
+    def perform_inference(self, instruction_prompt: str) -> str:
+        """
+        Performs inference on the given instruction prompt and returns the model output.
+
+        Args:
+            instruction_prompt: The user-facing prompt to send to the model.
+
+        Returns:
+            The model's text response as a string.
+        """
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=instruction_prompt,
+                config=self._config,
+            )
+            return response.text
+
+        except Exception as e:
+            raise RuntimeError(
+                f"An unexpected error occurred while trying to perform inference: {str(e)}"
+            )

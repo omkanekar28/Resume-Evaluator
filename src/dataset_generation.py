@@ -3,7 +3,7 @@ import time
 import json
 import numpy as np
 import pandas as pd
-from models import GGUFModel
+from models import GGUFModel, GoogleGenaiModel
 from prompts import get_label_generation_system_prompt, get_label_generation_instruction_prompt
 
 
@@ -13,14 +13,23 @@ class DatasetCompleterAutomatic:
     on the incomplete dataset.
     """
 
-    def __init__(self, dataset_path: str, dataset_shuffle_seed: int, output_path: str, gguf_model_path: str, system_prompt: str, context_window_size) -> None:
+    def __init__(
+        self, 
+        dataset_path: str, 
+        dataset_shuffle_seed: int, 
+        output_path: str, 
+        model_ckpt: str, 
+        system_prompt: str, 
+        **kwargs
+    ) -> None:
         """
         Initialises the parameters needed for dataset completion.
         """
-        self.model_handler = GGUFModel(
-            gguf_model_path=gguf_model_path, 
-            system_prompt=system_prompt, 
-            context_window_size=context_window_size
+        self.model_handler = GoogleGenaiModel(
+            model_name=model_ckpt,
+            system_prompt=system_prompt,
+            api_key=kwargs.get('api_key', None), 
+            include_thoughts=kwargs.get('include_thoughts', None)
         )
         self.dataset = pd.read_excel(dataset_path)
         self.shuffle_seed = dataset_shuffle_seed
@@ -72,7 +81,7 @@ class DatasetCompleterAutomatic:
                 print(f"Inference time taken: {(time.time() - inference_start_time):.2f} seconds")
                 print(response)
                 try:
-                    response_json_str = response[response.index('{'):]  # Extract JSON part from the response
+                    response_json_str = response[response.index('{'):response.rindex('}') + 1]  # Extract JSON part from the response
                     parsed_response = json.loads(response_json_str)
                     
                     required_keys = {"summary", "match_score", "skill_match", "experience_match", "education_match", "responsibility_match", "final_assessment"}
@@ -86,8 +95,13 @@ class DatasetCompleterAutomatic:
                 self.output_dict['Response'].append(response)
                 self.save_current_output_dict()
             except Exception as e:
+                # FOR DEBUGGING
+                import traceback
+                traceback.print_exc()
+                
                 print(f"Skipping row {index + 1}: {str(e)}")
-                continue
+                # continue
+                break
 
 
 if __name__ == '__main__':
@@ -95,11 +109,13 @@ if __name__ == '__main__':
     print("*                                    DATASET GENERATION                                    *")
     print("********************************************************************************************")
     dataset_completer = DatasetCompleterAutomatic(
-        dataset_path="/home/omkanekar28/code/Resume-Evaluator/data/dataset_without_labels(Data Scientist).xlsx",
+        dataset_path=r"path\to\Resume-Evaluator\data\dataset_without_labels(Data Scientist).xlsx",
         dataset_shuffle_seed=None,  # Set to None for no shuffling
-        output_path="/home/omkanekar28/code/Resume-Evaluator/data/dataset_complete(Data Scientist).xlsx",
-        gguf_model_path="/home/omkanekar28/code/Resume-Evaluator/models/Qwen3-4B-Q4_K_M.gguf",
+        output_path=r"path\to\Resume-Evaluator\data\dataset_complete(Data Scientist).xlsx",
+        model_ckpt="gemma-4-26b-a4b-it",
         system_prompt=get_label_generation_system_prompt(),
-        context_window_size=8000
+        context_window_size=8000, 
+        api_key="", 
+        include_thoughts=True
     )
     dataset_completer()
