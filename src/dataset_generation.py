@@ -3,7 +3,10 @@ import time
 import json
 import numpy as np
 import pandas as pd
-from models import GGUFModel, GoogleGenaiModel
+from models import (
+    GGUFModel, 
+    GoogleGenaiModel
+)
 from prompts import get_label_generation_system_prompt, get_label_generation_instruction_prompt
 
 
@@ -20,6 +23,7 @@ class DatasetCompleterAutomatic:
         output_path: str, 
         model_ckpt: str, 
         system_prompt: str, 
+        failure_sleep_time: int = 60,
         **kwargs
     ) -> None:
         """
@@ -33,6 +37,7 @@ class DatasetCompleterAutomatic:
         )
         self.dataset = pd.read_excel(dataset_path)
         self.shuffle_seed = dataset_shuffle_seed
+        self.failure_sleep_time = failure_sleep_time
 
         if self.shuffle_seed is not None:
             print(f"Shuffling dataset with seed: {self.shuffle_seed}")
@@ -71,37 +76,40 @@ class DatasetCompleterAutomatic:
         store it in the excel file.
         """
         for index, row in self.dataset.iloc[self.starting_index:].iterrows():
-            try:
-                print(f"\n\nProcessing row {index + 1} out of {len(self.dataset)}...\n\n")
-                resume = row['Resume']
-                jd = row['JD']
-                instruction_prompt = get_label_generation_instruction_prompt(resume=resume, jd=jd)
-                inference_start_time = time.time()
-                response = self.model_handler.perform_inference(instruction_prompt=instruction_prompt)
-                print(f"Inference time taken: {(time.time() - inference_start_time):.2f} seconds")
-                print(response)
+            attempt = 0
+            while True:
                 try:
-                    response_json_str = response[response.index('{'):response.rindex('}') + 1]  # Extract JSON part from the response
-                    parsed_response = json.loads(response_json_str)
+                    attempt += 1
+                    print(f"\n\nProcessing row {index + 1} out of {len(self.dataset)}... (Attempt {attempt})\n\n")
+                    resume = row['Resume']
+                    jd = row['JD']
+                    instruction_prompt = get_label_generation_instruction_prompt(resume=resume, jd=jd)
+                    inference_start_time = time.time()
+                    response = self.model_handler.perform_inference(instruction_prompt=instruction_prompt)
+                    print(f"Inference time taken: {(time.time() - inference_start_time):.2f} seconds")
+                    print(response)
+                    try:
+                        response_json_str = response[response.index('{'):response.rindex('}') + 1]
+                        parsed_response = json.loads(response_json_str)
+                        
+                        required_keys = {"summary", "match_score", "skill_match", "experience_match", "education_match", "responsibility_match", "final_assessment"}
+                        if not all(key in parsed_response for key in required_keys):
+                            raise ValueError(f"Response JSON missing required fields! Response: {parsed_response}")
+                    except json.JSONDecodeError:
+                        raise Exception(f"Invalid JSON response!")
                     
-                    required_keys = {"summary", "match_score", "skill_match", "experience_match", "education_match", "responsibility_match", "final_assessment"}
-                    if not all(key in parsed_response for key in required_keys):
-                        raise ValueError(f"Response JSON missing required fields! Response: {parsed_response}")
-                except json.JSONDecodeError:
-                    raise Exception(f"Invalid JSON response!")
-                
-                self.output_dict['JD'].append(jd)
-                self.output_dict['Resume'].append(resume)
-                self.output_dict['Response'].append(response)
-                self.save_current_output_dict()
-            except Exception as e:
-                # FOR DEBUGGING
-                import traceback
-                traceback.print_exc()
-                
-                print(f"Skipping row {index + 1}: {str(e)}")
-                # continue
-                break
+                    self.output_dict['JD'].append(jd)
+                    self.output_dict['Resume'].append(resume)
+                    self.output_dict['Response'].append(response)
+                    self.save_current_output_dict()
+                    break  # Success, move to next row
+
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    print(f"Row {index + 1} failed (Attempt {attempt}): {str(e)}")
+                    print(f"Retrying in {self.failure_sleep_time} seconds...")
+                    time.sleep(self.failure_sleep_time)
 
 
 if __name__ == '__main__':
@@ -116,6 +124,7 @@ if __name__ == '__main__':
         system_prompt=get_label_generation_system_prompt(),
         context_window_size=8000, 
         api_key="", 
-        include_thoughts=True
+        include_thoughts=True, 
+        failure_sleep_time=60
     )
     dataset_completer()
