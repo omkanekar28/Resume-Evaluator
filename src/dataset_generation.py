@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 from models import (
     GGUFModel, 
-    GoogleGenaiModel
+    GoogleGenaiModel, 
+    OpenrouterModel
 )
 from prompts import get_label_generation_system_prompt, get_label_generation_instruction_prompt
 
@@ -29,11 +30,10 @@ class DatasetCompleterAutomatic:
         """
         Initialises the parameters needed for dataset completion.
         """
-        self.model_handler = GoogleGenaiModel(
+        self.model_handler = OpenrouterModel(
             model_name=model_ckpt,
             system_prompt=system_prompt,
             api_key=kwargs.get('api_key', None), 
-            include_thoughts=kwargs.get('include_thoughts', None)
         )
         self.dataset = pd.read_excel(dataset_path)
         self.shuffle_seed = dataset_shuffle_seed
